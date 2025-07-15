@@ -32,23 +32,11 @@
             flex-direction: column; /* Stack content vertically */
             align-items: center; /* Center content horizontally */
             justify-content: flex-start; /* Align content to the start (top) of the page */
-            position: relative; /* Needed for absolute positioning of the video */
-            z-index: 0; /* Ensure body content is above the video */
         }
 
-        /* Video background styles */
-        #backgroundVideo {
-            position: fixed; /* Fixed position relative to the viewport */
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            object-fit: cover; /* Cover the entire area, cropping if necessary */
-            z-index: -1; /* Place it behind all other content */
-            display: none; /* Hidden by default, shown only for rainforest theme */
-        }
-
-        /* Specific background images for the BODY based on theme (excluding rainforest) */
+        /* Specific background images for the BODY based on theme */
+        /* IMPORTANT: Ensure these image files are present in the same directory (or correct relative path)
+            on your GitHub Pages server. File names are case-sensitive on GitHub! */
         .body-theme-underwater {
             background-image: url('underwaterBG.png');
         }
@@ -58,7 +46,9 @@
         .body-theme-ice {
             background-image: url('iceBG.png');
         }
-        /* .body-theme-rainforest will now be handled by the video tag */
+        .body-theme-rainforest {
+            background-image: url('rainforestBG.png');
+        }
         .body-theme-cybercity {
             background-image: url('cybercityBG.png');
         }
@@ -528,12 +518,6 @@
     </style>
 </head>
 <body>
-    <!-- Background Video for 4th Grade Theme -->
-    <video id="backgroundVideo" autoplay loop muted playsinline>
-        <source src="rainforestBG.mp4" type="video/mp4">
-        Your browser does not support the video tag.
-    </video>
-
     <h1>Multi-Grade Math Challenge</h1>
 
     <div class="settings-group">
@@ -629,6 +613,7 @@
     <script>
         // --- DOM Elements ---
         const problemDisplay = document.getElementById('problemDisplay');
+        // Removed initialMessageSpan as the new code uses querySelector
         const perQuestionTimerDisplay = document.getElementById('perQuestionTimerDisplay');
         const answerInput = document.getElementById('answerInput');
         const submitBtn = document.getElementById('submitBtn');
@@ -649,7 +634,6 @@
         const inputGroup = document.querySelector('.input-group'); // Get the input group element
         const confettiContainer = document.getElementById('confetti-container'); // Confetti container
         const winnerAnimationContainer = document.getElementById('winner-animation-container'); // Winner animation container
-        const backgroundVideo = document.getElementById('backgroundVideo'); // Reference to the background video
 
         // --- Game Variables ---
         let score = 0;
@@ -688,11 +672,6 @@
         let confettiAnimation = null; // Initialize as null
         let winnerAnimation = null; // Initialize as null
 
-        // Video playback control variables
-        let videoPlaybackDirection = 1; // 1 for forward, -1 for backward
-        const videoPlaybackSpeed = 0.7; // Slower speed (70% of normal)
-        const videoLoopEpsilon = 0.1; // Small buffer for video loop points
-
         // --- Difficulty Settings (base values for each grade) ---
         const difficultySettings = {
             '1st': {
@@ -723,7 +702,7 @@
                 divideMaxIncrement: 2
             },
             '4th': {
-                themeClass: 'body-theme-rainforest', // This class will now trigger video
+                themeClass: 'body-theme-rainforest',
                 addSubtractRange: { min: 10, max: 500 },
                 multiplyRange: { min1: 2, max1: 12, min2: 2, max2: 100 },
                 divideRange: { divisorMin: 2, divisorMax: 12, quotientMin: 2, quotientMax: 100 },
@@ -934,7 +913,7 @@
         }
 
         /**
-         * Updates the background image or video of the body based on the selected difficulty.
+         * Updates the background image of the body based on the selected difficulty.
          */
         function updateBackground() {
             // Remove all existing theme classes from body
@@ -943,62 +922,8 @@
                     body.classList.remove(difficultySettings[key].themeClass);
                 }
             }
-
-            // Hide video by default
-            backgroundVideo.style.display = 'none';
-            backgroundVideo.pause();
-            // Remove the event listener if it was previously added, to prevent multiple listeners
-            backgroundVideo.removeEventListener('timeupdate', handleVideoLoop);
-
-
-            // Add the new theme class to body or play video
-            const themeClass = difficultySettings[currentDifficulty].themeClass;
-            if (currentDifficulty === '4th') {
-                // For 4th grade, use the video background
-                backgroundVideo.style.display = 'block';
-                backgroundVideo.playbackRate = videoPlaybackSpeed; // Set initial playback speed
-                videoPlaybackDirection = 1; // Start playing forward
-                backgroundVideo.currentTime = 0; // Rewind video to start
-                backgroundVideo.play().catch(e => console.error("Error playing background video:", e));
-                // Add the event listener for custom looping
-                backgroundVideo.addEventListener('timeupdate', handleVideoLoop);
-
-                // Ensure body background is transparent to show video
-                body.style.backgroundColor = 'transparent';
-                body.style.backgroundImage = 'none'; // Explicitly set to none for video background
-            } else {
-                // For other grades, apply the background image class and ensure body background is not transparent
-                body.classList.add(themeClass);
-                body.style.backgroundColor = '#f0f8ff'; // Fallback color
-                body.style.backgroundImage = ''; // Crucial: Clear inline background-image to let CSS class take over
-            }
-        }
-
-        /**
-         * Handles the custom ping-pong looping for the background video.
-         */
-        function handleVideoLoop() {
-            const video = backgroundVideo;
-            const duration = video.duration;
-
-            if (isNaN(duration) || duration === 0) {
-                // Video metadata not loaded yet or invalid duration
-                return;
-            }
-
-            if (videoPlaybackDirection === 1) { // Playing forward
-                if (video.currentTime >= duration - videoLoopEpsilon) {
-                    videoPlaybackDirection = -1; // Change direction to backward
-                    video.playbackRate = -videoPlaybackSpeed; // Play backward at set speed
-                    video.currentTime = duration; // Ensure it starts from the end
-                }
-            } else { // Playing backward
-                if (video.currentTime <= videoLoopEpsilon) {
-                    videoPlaybackDirection = 1; // Change direction to forward
-                    video.playbackRate = videoPlaybackSpeed; // Play forward at set speed
-                    video.currentTime = 0; // Ensure it starts from the beginning
-                }
-            }
+            // Add the new theme class to body
+            body.classList.add(difficultySettings[currentDifficulty].themeClass);
         }
 
         /**
