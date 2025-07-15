@@ -688,6 +688,11 @@
         let confettiAnimation = null; // Initialize as null
         let winnerAnimation = null; // Initialize as null
 
+        // Video playback control variables
+        let videoPlaybackDirection = 1; // 1 for forward, -1 for backward
+        const videoPlaybackSpeed = 0.7; // Slower speed (70% of normal)
+        const videoLoopEpsilon = 0.1; // Small buffer for video loop points
+
         // --- Difficulty Settings (base values for each grade) ---
         const difficultySettings = {
             '1st': {
@@ -942,14 +947,22 @@
             // Hide video by default
             backgroundVideo.style.display = 'none';
             backgroundVideo.pause();
+            // Remove the event listener if it was previously added, to prevent multiple listeners
+            backgroundVideo.removeEventListener('timeupdate', handleVideoLoop);
+
 
             // Add the new theme class to body or play video
             const themeClass = difficultySettings[currentDifficulty].themeClass;
             if (currentDifficulty === '4th') {
                 // For 4th grade, use the video background
                 backgroundVideo.style.display = 'block';
+                backgroundVideo.playbackRate = videoPlaybackSpeed; // Set initial playback speed
+                videoPlaybackDirection = 1; // Start playing forward
                 backgroundVideo.currentTime = 0; // Rewind video to start
                 backgroundVideo.play().catch(e => console.error("Error playing background video:", e));
+                // Add the event listener for custom looping
+                backgroundVideo.addEventListener('timeupdate', handleVideoLoop);
+
                 // Ensure body background is transparent to show video
                 body.style.backgroundColor = 'transparent';
                 body.style.backgroundImage = 'none';
@@ -958,6 +971,33 @@
                 body.classList.add(themeClass);
                 body.style.backgroundColor = '#f0f8ff'; // Fallback color
                 // If the theme class itself sets a background image, this will override the fallback color.
+            }
+        }
+
+        /**
+         * Handles the custom ping-pong looping for the background video.
+         */
+        function handleVideoLoop() {
+            const video = backgroundVideo;
+            const duration = video.duration;
+
+            if (isNaN(duration) || duration === 0) {
+                // Video metadata not loaded yet or invalid duration
+                return;
+            }
+
+            if (videoPlaybackDirection === 1) { // Playing forward
+                if (video.currentTime >= duration - videoLoopEpsilon) {
+                    videoPlaybackDirection = -1; // Change direction to backward
+                    video.playbackRate = -videoPlaybackSpeed; // Play backward at set speed
+                    video.currentTime = duration; // Ensure it starts from the end
+                }
+            } else { // Playing backward
+                if (video.currentTime <= videoLoopEpsilon) {
+                    videoPlaybackDirection = 1; // Change direction to forward
+                    video.playbackRate = videoPlaybackSpeed; // Play forward at set speed
+                    video.currentTime = 0; // Ensure it starts from the beginning
+                }
             }
         }
 
@@ -1277,7 +1317,7 @@
             } else {
                 consecutiveCorrectAnswers = 0; // Reset consecutive correct answers on incorrect answer
                 deactivateFireEffect(); // Deactivate fire effect
-                feedbackMessage.textContent = `Incorrect. The answer was ${currentProblem.answer}. 🙁`;
+                feedbackMessage.textContent = `Incorrect. The answer was ${currentProblem.answer}. �`;
                 feedback.className = "feedback-area feedback-incorrect";
                 playWrongSound();
             }
@@ -1570,3 +1610,4 @@
     </script>
 </body>
 </html>
+�
