@@ -965,12 +965,12 @@
 
                 // Ensure body background is transparent to show video
                 body.style.backgroundColor = 'transparent';
-                body.style.backgroundImage = 'none';
+                body.style.backgroundImage = 'none'; // Explicitly set to none for video background
             } else {
                 // For other grades, apply the background image class and ensure body background is not transparent
                 body.classList.add(themeClass);
                 body.style.backgroundColor = '#f0f8ff'; // Fallback color
-                // If the theme class itself sets a background image, this will override the fallback color.
+                body.style.backgroundImage = ''; // Crucial: Clear inline background-image to let CSS class take over
             }
         }
 
@@ -1317,7 +1317,7 @@
             } else {
                 consecutiveCorrectAnswers = 0; // Reset consecutive correct answers on incorrect answer
                 deactivateFireEffect(); // Deactivate fire effect
-                feedbackMessage.textContent = `Incorrect. The answer was ${currentProblem.answer}. �`;
+                feedbackMessage.textContent = `Incorrect. The answer was ${currentProblem.answer}. 🙁`;
                 feedback.className = "feedback-area feedback-incorrect";
                 playWrongSound();
             }
@@ -1610,4 +1610,3 @@
     </script>
 </body>
 </html>
-�
