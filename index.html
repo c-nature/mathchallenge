@@ -608,6 +608,12 @@
         <source src="horn.ogg" type="audio/ogg">
         <source src="horn.wav" type="audio/wav">
     </audio>
+    <!-- NEW: Winner sound element -->
+    <audio id="winnerSoundElement" preload="auto">
+        <source src="winner.mp3" type="audio/mpeg">
+        <source src="winner.ogg" type="audio/ogg">
+        <source src="winner.wav" type="audio/wav">
+    </audio>
 
 
     <script>
@@ -1242,7 +1248,7 @@
             } else {
                 consecutiveCorrectAnswers = 0; // Reset consecutive correct answers on incorrect answer
                 deactivateFireEffect(); // Deactivate fire effect
-                feedbackMessage.textContent = `Incorrect. The answer was ${currentProblem.answer}. 🙁`;
+                feedbackMessage.textContent = `Incorrect. The answer was ${currentProblem.answer}. �`;
                 feedback.className = "feedback-area feedback-incorrect";
                 playWrongSound();
             }
@@ -1274,7 +1280,7 @@
                 }
                 // Play clap and horn sounds along with confetti
                 playClapSound();
-                playHornSound();
+                // Removed playHornSound() here, it will be handled by playWinnerSound() if game ends
                 // --- End Lottie Confetti Trigger ---
 
                 // --- NEW: Badge Awarding Logic for 1st Grade Math ---
@@ -1304,6 +1310,7 @@
                             console.warn("window.parent.awardBadge is not available. Cannot award badge.");
                         }
                     }
+                    playWinnerSound(); // Play winner sound when the game ends successfully
                     setTimeout(endGame, 2000);
                 } else {
                     setTimeout(startNewRound, 2000);
@@ -1355,6 +1362,7 @@
         const clickSoundElement = document.getElementById('clickSoundElement');
         const clapSoundElement = document.getElementById('clapSoundElement');
         const hornSoundElement = document.getElementById('hornSoundElement');
+        const winnerSoundElement = document.getElementById('winnerSoundElement'); // NEW: Get winner sound element
 
         /**
          * Generic play sound function to handle multiple audio elements
@@ -1388,6 +1396,11 @@
 
         function playHornSound() {
             playSound(hornSoundElement, 'horn');
+        }
+
+        // NEW: Play winner sound function
+        function playWinnerSound() {
+            playSound(winnerSoundElement, 'winner');
         }
 
         // --- Event Listeners ---
@@ -1523,7 +1536,7 @@
                     console.error("Ensure 'winner.lottie' exists at the correct path and its name matches exactly (case-sensitive) on GitHub.");
                 });
                 winnerAnimation.addEventListener('error', (e) => {
-                    console.error("Winner Lottie animation encountered an error:", e);
+                    console.error("Lottie animation encountered an error:", e);
                 });
                 winnerAnimation.addEventListener('DOMLoaded', () => {
                     console.log("Winner Lottie animation DOM loaded successfully.");
