@@ -1293,6 +1293,16 @@
                         console.warn("window.parent.awardBadge is not available. Cannot award badge.");
                     }
                 }
+                // Award "Halfway Hero" badge for the current difficulty (grade) if it's the 5th round
+                if (currentRound === 5) {
+                    if (window.parent && window.parent.awardBadge) {
+                        const badgeName = `halfwayhero${currentDifficulty.toLowerCase()}grademath`;
+                        const badgeDisplayName = `Halfway Hero ${currentDifficulty} Grade Math`;
+                        window.parent.awardBadge(badgeName, badgeDisplayName);
+                    } else {
+                        console.warn("window.parent.awardBadge is not available. Cannot award badge.");
+                    }
+                }
 
                 currentRound++;
                 if (currentRound > totalRounds) {
