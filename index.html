@@ -36,7 +36,7 @@
 
         /* Specific background images for the BODY based on theme */
         /* IMPORTANT: Ensure these image files are present in the same directory (or correct relative path)
-             on your GitHub Pages server. File names are case-sensitive on GitHub! */
+            on your GitHub Pages server. File names are case-sensitive on GitHub! */
         .body-theme-underwater {
             background-image: url('underwaterBG.png');
         }
@@ -213,9 +213,6 @@
             /* Stronger, solid border */
             border: 4px solid #00aaff; /* Changed from dashed to solid, thicker */
             animation: scaleIn 0.8s ease-out 0.4s backwards; /* Delayed animation */
-            position: relative; /* For animations and absolute positioning of fire canvas */
-            z-index: 1; /* Ensure elements stack correctly */
-            overflow: hidden; /* Hide overflow of fire canvas */
         }
 
         .problem-area span { /* Target the span inside problem-area for text shadow */
@@ -257,7 +254,7 @@
         /* New: Styles for "on fire" input group */
         .input-group-on-fire {
             box-shadow: 0 0 15px 8px rgba(255, 165, 0, 0.7),
-                        0 0 25px 15px rgba(255, 69, 0, 0.5); /* Fiery glow */
+                                0 0 25px 15px rgba(255, 69, 0, 0.5); /* Fiery glow */
             border-color: #ff4500 !important; /* Stronger border */
             animation: pulseGlow 1.5s infinite alternate; /* Pulsing effect */
         }
@@ -404,22 +401,6 @@
             .btn {
                 padding: 15px 30px;
                 font-size: 1.2rem;
-            }
-            .input-group {
-                flex-direction: column;
-                gap: 15px;
-            }
-            .feedback-area {
-                font-size: 1.4rem;
-                min-height: 40px;
-            }
-            .score-timer {
-                flex-direction: column;
-                gap: 10px;
-                font-size: 1.2rem;
-            }
-            .score-timer span {
-                padding: 8px 15px;
             }
         }
 
@@ -681,9 +662,6 @@
         let correctAnswersInRound = 0;
         const passingPercentage = 80; // 80% to pass a round
 
-        // Track consecutive correct answers for the "on fire" effect
-        let consecutiveCorrectAnswers = 0;
-
         // Fire effect variables
         const fireCanvas = document.getElementById('fireCanvas');
         const fireCtx = fireCanvas.getContext('2d');
@@ -717,7 +695,7 @@
                 divideRange: { divisorMin: 2, divisorMax: 5, quotientMin: 2, quotientMax: 5 },
                 operators: ['+', '-', '*'],
                 addSubtractMaxIncrement: 10,
-                multiplyMaxIncrement: 1
+                multiplyMaxIncrement: 1 // Max factor for multiplication/division increases by 1
             },
             '3rd': {
                 themeClass: 'body-theme-ice',
@@ -885,7 +863,7 @@
                         getFireHeat(x - 1, y + 1) + // Bottom-left
                         getFireHeat(x, y + 1) +    // Directly below
                         getFireHeat(x + 1, y + 1) + // Bottom-right
-                        getFireHeat(x, y + 2)      // Two steps below (to give more upward momentum)
+                        getFireHeat(x, y + 2)        // Two steps below (to give more upward momentum)
                     ) / 4.1;
                     
                     setFireHeat(x, y, c); // Update the current pixel's heat
@@ -1291,35 +1269,36 @@
                 feedbackMessage.textContent = `Round ${currentRound} Passed! Great job with ${percentageCorrect.toFixed(0)}%!`;
                 feedback.className = "feedback-area feedback-round-pass";
                 
-                // NEW: Local check for the "1st Step" badge
-                const user = window.parent.localStorage.getItem('user');
-                const userObj = user ? JSON.parse(user) : null;
-                const firstStepBadgeName = `1ststep${currentDifficulty.toLowerCase()}grademath`;
-                const hasFirstStepBadge = userObj && userObj.badges && userObj.badges.includes(firstStepBadgeName);
+                // --- Lottie Confetti Trigger ---
+                confettiContainer.classList.add('active'); // Show confetti container
+                // Ensure confettiAnimation is loaded before attempting to play
+                if (confettiAnimation) {
+                    confettiAnimation.goToAndPlay(0, true); // Play confetti from beginning
+                    console.log("Attempting to play confetti animation.");
+                } else {
+                    console.warn("Confetti animation object is not loaded or null. Cannot play.");
+                }
+                // Play clap and horn sounds along with confetti
+                playClapSound();
+                // Removed playHornSound() here, it will be handled by playWinnerSound() if game ends
+                // --- End Lottie Confetti Trigger ---
 
-                // NEW: Local check for the "Halfway Hero" badge
-                const halfwayHeroBadgeName = `halfwayhero${currentDifficulty.toLowerCase()}grademath`;
-                const hasHalfwayHeroBadge = userObj && userObj.badges && userObj.badges.includes(halfwayHeroBadgeName);
-
-                // NEW: Local check for the "Winner" badge
-                const winnerBadgeName = `${currentDifficulty.toLowerCase()}grademathwinner`;
-                const hasWinnerBadge = userObj && userObj.badges && userObj.badges.includes(winnerBadgeName);
-
-                // Award "1st Step" badge for the current difficulty (grade) if it's the first round and they don't have it yet
-                if (currentRound === 1 && !hasFirstStepBadge) {
+                // Award "1st Step" badge for the current difficulty (grade) if it's the first round
+                if (currentRound === 1) {
                     if (window.parent && window.parent.awardBadge) {
+                        const badgeName = `1ststep${currentDifficulty.toLowerCase()}grademath`;
                         const badgeDisplayName = `1st Step ${currentDifficulty} Grade Math`;
-                        window.parent.awardBadge(firstStepBadgeName, badgeDisplayName);
+                        window.parent.awardBadge(badgeName, badgeDisplayName);
                     } else {
                         console.warn("window.parent.awardBadge is not available. Cannot award badge.");
                     }
                 }
-                
-                // Award "Halfway Hero" badge for the current difficulty (grade) if it's the 5th round and they don't have it yet
-                if (currentRound === 5 && !hasHalfwayHeroBadge) {
+                // Award "Halfway Hero" badge for the current difficulty (grade) if it's the 5th round
+                if (currentRound === 5) {
                     if (window.parent && window.parent.awardBadge) {
+                        const badgeName = `halfwayhero${currentDifficulty.toLowerCase()}grademath`;
                         const badgeDisplayName = `Halfway Hero ${currentDifficulty} Grade Math`;
-                        window.parent.awardBadge(halfwayHeroBadgeName, badgeDisplayName);
+                        window.parent.awardBadge(badgeName, badgeDisplayName);
                     } else {
                         console.warn("window.parent.awardBadge is not available. Cannot award badge.");
                     }
@@ -1327,14 +1306,14 @@
 
                 currentRound++;
                 if (currentRound > totalRounds) {
-                    // Award "Winner" badge for the specific grade if all 10 rounds are passed and they don't have it yet
-                    if (window.parent && window.parent.awardBadge && !hasWinnerBadge) {
+                    // Award "Winner" badge for the specific grade if all 10 rounds are passed
+                    if (window.parent && window.parent.awardBadge) {
+                        const badgeName = `${currentDifficulty.toLowerCase()}grademathwinner`;
                         const badgeDisplayName = `${currentDifficulty} Grade Math Winner`;
-                        window.parent.awardBadge(winnerBadgeName, badgeDisplayName);
+                        window.parent.awardBadge(badgeName, badgeDisplayName);
                     } else {
-                        console.warn("window.parent.awardBadge is not available or user already has the badge. Cannot award badge.");
+                        console.warn("window.parent.awardBadge is not available. Cannot award badge.");
                     }
-                    
                     playWinnerSound(); // Play winner sound when the game ends successfully
                     setTimeout(endGame, 2000);
                 } else {
